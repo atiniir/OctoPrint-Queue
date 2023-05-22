@@ -110,6 +110,7 @@ $(function() {
         }
 
         self.onEventFileAdded = function(payload) {
+            log.info("onEventFileAdded payload");
             self.showAddDialog();
             self.itemForEditing().filename(payload.storage + ":" + payload.path);
         }
@@ -119,6 +120,7 @@ $(function() {
         }
 
         self.requestData = function(params) {
+            log.info("requestData params");
             var force = false;
             if (_.isObject(params)) {
                 force = params.force;
@@ -167,6 +169,7 @@ $(function() {
         }
 
         self.showArchiveDialog = function(data) {
+            log.info("showArchiveDialog data");
             if (self.archiveDialog) {
                 self.itemForArchiving(data);
                 self.archiveDialog.modal("show");
@@ -190,11 +193,13 @@ $(function() {
         }
 
         self.archiveCompleted = function(data) {
+            log.info("archiveCompleted data");
             self.fromResponse(data);
             self.archiveDialog.modal("hide");
         }
 
         self.addToQueue = function(event) {
+            log.info("addToQueue event");
             var payload = {
                 staff: self.itemForEditing().staff(),
                 customer: self.itemForEditing().customer(),
@@ -227,6 +232,7 @@ $(function() {
         }
 
         self.loadFile = function(queueItem) {
+            log.info("loadFile queueItem");
             var data = {};
             var components = queueItem.filename().split(":");
             if (components.length == 1) { 
@@ -240,6 +246,7 @@ $(function() {
         }
 
         self.showAddDialog = function() {
+            log.info("showAddDialog");
             if (self.editDialog) {
                 var data
                 self.itemForEditing(new QueueItem());
@@ -249,6 +256,7 @@ $(function() {
         }
 
         self.modifyQueueItem = function(event) {
+            log.info("modifyQueueItem event");
             var payload = {
                 id: self.itemForEditing().id(),
                 staff: self.itemForEditing().staff(),
