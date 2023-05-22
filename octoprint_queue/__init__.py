@@ -11,6 +11,8 @@ __plugin_pythoncompat__ = ">=3.0,<4"
 from flask import jsonify, request, make_response
 from octoprint.server.util.flask import with_revalidation_checking, check_etag, restricted_access
 
+import logging
+import logging.handlers
 import octoprint.plugin
 import sqlite3
 import os
@@ -23,8 +25,24 @@ class QueuePlugin(octoprint.plugin.StartupPlugin,
 
 	def __init__(self):
 		self._queue_dict = None
+		self._console_logger = None
+		
+	def initialize(self):
+		self._console_logger = logging.getLogger("octoprint.plugins.queue")
+
+	def on_startup(self, host, port):
+		console_logging_handler = logging.handlers.RotatingFileHandler(
+			self._settings.get_plugin_logfile_path(postfix="queue"), maxBytes=2 * 1024 * 1024)
+		console_logging_handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
+		console_logging_handler.setLevel(logging.INFO)
+
+		self._console_logger.addHandler(console_logging_handler)
+		self._console_logger.setLevel(logging.INFO)
+		self._console_logger.propagate = False
 
 	def on_after_startup(self):
+		self._console_logger.info("on after startup")
+		
 		self._queue_db_path = os.path.join(self.get_plugin_data_folder(),"queue.db")
 		connection = sqlite3.connect(self._queue_db_path)
 		cursor = connection.cursor()
@@ -110,6 +128,9 @@ END;
 	@restricted_access
 	def getQueue(self):
 		from octoprint.settings import valid_boolean_trues
+
+		self._console_logger.info("queue route getQueue")
+
 		force = request.values.get("force","false") in valid_boolean_trues
 		if force:
 			self._queue_dict = None
@@ -141,6 +162,9 @@ END;
 	@octoprint.plugin.BlueprintPlugin.route("/file", methods=["GET"])
 	@restricted_access
 	def getRecentFile(self):
+		
+		self._console_logger.info("file route getRecentFile")
+
 		if self._fileAddedPayload is not None:
 			payload = self._fileAddedPayload
 			self._fileAddedPayload = None
@@ -152,6 +176,9 @@ END;
 	@restricted_access
 	def addToQueue(self):
 		from werkzeug.exceptions import BadRequest
+		
+		self._console_logger.info("addtoqueue route addToQueue")
+
 		try:
 			json_data = request.json
 		except BadRequest:
@@ -181,6 +208,9 @@ END;
 	@restricted_access
 	def archive(self):
 		from werkzeug.exceptions import BadRequest
+		
+		self._console_logger.info("archive route archive")
+
 		try:
 			json_data = request.json
 		except BadRequest:
@@ -201,6 +231,9 @@ END;
 	@restricted_access
 	def modifyItem(self):
 		from werkzeug.exceptions import BadRequest
+		
+		self._console_logger.info("modifyitem route modifyItem")
+
 		try:
 			json_data = request.json
 		except BadRequest:
